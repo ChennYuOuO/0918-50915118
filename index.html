@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>剪刀石頭布小遊戲</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f2f2f2;
+        }
+        h1 {
+            margin-top: 50px;
+            color: #333;
+        }
+        .choices {
+            margin-top: 20px;
+        }
+        .choices button {
+            padding: 10px;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            transition: transform 0.3s, background-color 0.3s;
+        }
+        .choices button img {
+            width: 100px;
+            height: 100px;
+        }
+        .choices button:hover {
+            transform: scale(1.2, 1);
+            background-color: green;
+        }
+        #result {
+            margin-top: 30px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        #score {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+        /* 設定玩家與電腦比數的顏色 */
+        #player-score {
+            color: blue;
+        }
+        #computer-score {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>剪刀石頭布</h1>
+    <div id="score">
+        玩家: <span id="player-score">0</span> - 電腦: <span id="computer-score">0</span>
+    </div>
+    <div class="choices">
+        <button onclick="playGame('剪刀')">
+            <img src="scissors.png" alt="剪刀">
+        </button>
+        <button onclick="playGame('石頭')">
+            <img src="rock.png" alt="石頭">
+        </button>
+        <button onclick="playGame('布')">
+            <img src="paper.png" alt="布">
+        </button>
+    </div>
+    <div id="result"></div>
+
+    <!-- 引入 SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- 使用外部 MP3 音效連結 -->
+    <audio id="win-sound" src="https://www.soundjay.com/buttons/button-4.mp3"></audio>
+    <audio id="lose-sound" src="https://www.soundjay.com/buttons/button-5.mp3"></audio>
+    <audio id="tie-sound" src="https://www.soundjay.com/buttons/button-6.mp3"></audio>
+
+    <script>
+        let playerScore = 0;
+        let computerScore = 0;
+        const maxScore = 3;  // 設定三勝
+
+        async function playSound(audioElement) {
+            try {
+                await audioElement.play();
+            } catch (error) {
+                console.log("音效播放失敗:", error);
+            }
+        }
+
+        function playGame(playerChoice) {
+            const choices = ['剪刀', '石頭', '布'];
+            const computerChoice = choices[Math.floor(Math.random() * 3)];
+            const resultElement = document.getElementById('result');
+            const playerScoreElement = document.getElementById('player-score');
+            const computerScoreElement = document.getElementById('computer-score');
+
+            let result = '';
+            let color = '';
+
+            // 音效元素
+            const winSound = document.getElementById('win-sound');
+            const loseSound = document.getElementById('lose-sound');
+            const tieSound = document.getElementById('tie-sound');
+
+            // 判斷比賽結果
+            if (playerChoice === computerChoice) {
+                result = `平手！你選擇了 ${playerChoice}，電腦選擇了 ${computerChoice}。`;
+                color = 'gray';
+                playSound(tieSound);  // 播放平手音效
+            } else if (
+                (playerChoice === '剪刀' && computerChoice === '布') ||
+                (playerChoice === '石頭' && computerChoice === '剪刀') ||
+                (playerChoice === '布' && computerChoice === '石頭')
+            ) {
+                result = `你贏了！你選擇了 ${playerChoice}，電腦選擇了 ${computerChoice}。`;
+                color = 'green';
+                playerScore++;
+                playSound(winSound);  // 播放勝利音效
+            } else {
+                result = `你輸了！你選擇了 ${playerChoice}，電腦選擇了 ${computerChoice}。`;
+                color = 'red';
+                computerScore++;
+                playSound(loseSound);  // 播放失敗音效
+            }
+
+            // 更新比分顯示
+            resultElement.innerText = result;
+            resultElement.style.color = color;
+            playerScoreElement.innerText = playerScore;
+            computerScoreElement.innerText = computerScore;
+
+            // 檢查是否達到三勝
+            if (playerScore === maxScore || computerScore === maxScore) {
+                const winner = playerScore === maxScore ? '玩家' : '電腦';
+                Swal.fire({
+                    title: `${winner} 贏得比賽！`,
+                    text: '遊戲將重新開始。',
+                    icon: 'success',
+                    confirmButtonText: '重新開始'
+                }).then(() => {
+                    resetGame();
+                });
+            }
+        }
+
+        // 重置遊戲
+        function resetGame() {
+            playerScore = 0;
+            computerScore = 0;
+            document.getElementById('player-score').innerText = '0';
+            document.getElementById('computer-score').innerText = '0';
+            document.getElementById('result').innerText = '';
+        }
+    </script>
+</body>
+</html>
